@@ -7,3 +7,7 @@ jobs: # 실행시킬 job 의 집합
     steps: # job 을 구성하는 step 집합
       - name: my-step-1 # action 창에서 표시될 step 이름
         run: echo hello github action
+      - name: my-step-2
+        run: |
+          - echo this is my-step-2
+          - echo good
