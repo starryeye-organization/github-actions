@@ -1,1 +1,31 @@
-# github-actions-setting
+# github-actions
+
+## components
+- workflow
+  - 하나 이상의 작업을 실행하는 자동화 프로세스를 의미함
+  - .github/workflows/ 경로에 파일이 있어야 실행된다.
+  - 여러 워크플로우를 생성해둘 수 있고 동시에 실행가능
+  - 실행 트리거 방식
+    - event, 수동, 스케줄, repository 외부에서 트리거도 가능
+- event
+  - 워크플로우 실행을 트리거하는 repository 의 특정 이벤트들
+    - push, pull request 등
+- runner
+  - job 을 실행할 수 있는 서버
+    - linux, windows, macos 지원
+  - 각 runner 는 하나의 job 을 실행한다.
+- job
+  - runner 에서 실행되는 step 의 집합
+  - action 이나 스크립트 등을 job 에 정의해서 사용한다.
+  - 기본적으로 각각의 job 은 병렬로 실행된다.
+    - 순차 실행이 필요하다면, needs 를 이용하자
+- step
+  - job 에 정의된 개별 명령
+  - 순차적으로 실행되며, 한 step 이 실패하면 다음 step 은 실행하지 않음
+- action
+  - 하나의 step 에서 하나의 action 만 사용하며, 특정 작업을 수행하는 코드 조각
+  - uses 키워드를 이용해서 action 을 로드한다.
+  - action 의 종류
+    - Github 에서 공식 제공하는 action, Github community 에서 만든 action
+      - [Github marketplace 에서 확인](https://github.com/marketplace)
+    - 사용자 커스텀 action
