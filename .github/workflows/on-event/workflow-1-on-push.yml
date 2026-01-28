@@ -1,5 +1,6 @@
 name: workflow-on-push-event # action 창에서 표시될 workflow 이름, 파일명은 상관 없다.
 on: push # push event 로 트리거하겠다는 의미
+# commit 되는 브랜치에 이 파일이 존재해야 동작됨.
 
 jobs: # 실행시킬 job 의 집합
   my-job-1: # action 창에서 표시될 job 이름
