@@ -1,5 +1,6 @@
 name: workflow-on-pull-request-event
-on: pull_request
+on: pull_request # pull_request event 는 기본적으로 pull request 상태가 opened, synchronize, reopened 일 때 트리거 된다.
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request
 
 jobs:
   my-job-1:
