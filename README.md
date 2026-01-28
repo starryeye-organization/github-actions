@@ -27,5 +27,5 @@
   - uses 키워드를 이용해서 action 을 로드한다.
   - action 의 종류
     - Github 에서 공식 제공하는 action, Github community 에서 만든 action
-      - [Github marketplace 에서 확인](https://github.com/marketplace)
+      - [Github marketplace 에서 확인](https://github.com/marketplace?type=actions)
     - 사용자 커스텀 action
