@@ -1,0 +1,9 @@
+name: workflow-on-push-event # action 창에서 표시될 workflow 이름
+on: push # push event 로 트리거하겠다는 의
+
+jobs: # 실행시킬 job 의 집합
+  my-job-1: # job 이름
+    runs-on: ubuntu-latest # job 을 실행시킬 runner 지정
+    steps: # job 을 구성하는 step 집합
+      - name: my-step-1 # action 창에서 표시될 step 이름
+        run: echo hello github action
