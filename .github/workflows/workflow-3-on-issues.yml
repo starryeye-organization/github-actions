@@ -1,0 +1,19 @@
+name: workflow-3-on-issues-event
+on:
+  issues:
+    types:
+      - opened
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/events-that-trigger-workflows#issues
+# type 이 없는 기본 값으로는 모든 타입이 활성화 된다. 이 예시에서는 issue 가 생성될때만 실행되도록 함.
+# default 브랜치에 이 파일이 존재해야 동작됨. (issues event 는 브랜치와 무관한 repository event 라서..)
+
+jobs:
+  my-job-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: my-step-1
+        run: echo hello github action
+      - name: my-step-2
+        run: |
+          echo this is my-step-2
+          echo good
