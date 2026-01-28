@@ -1,0 +1,13 @@
+name: workflow-on-pull-request-event
+on: pull_request
+
+jobs:
+  my-job-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: my-step-1
+        run: echo hello github action
+      - name: my-step-2
+        run: |
+          echo this is my-step-2
+          echo good
