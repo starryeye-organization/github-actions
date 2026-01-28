@@ -1,6 +1,11 @@
 name: workflow-on-pull-request-event
-on: pull_request # pull_request event 는 기본적으로 pull request 상태가 opened, synchronize, reopened 일 때 트리거 된다.
+on:
+  pull_request:
+    types:
+      - opened
+# pull_request event 는 기본적으로 pull request 상태가 opened, synchronize, reopened 일 때 트리거 된다.
 # https://docs.github.com/ko/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request
+# types 로 특정 상태를 지정해주면 해당 상태에서만 트리거 된다. 예시에서는 pull request 가 최초 생성될 때만 workflow 가 실행 될 것이다.
 
 jobs:
   my-job-1:
