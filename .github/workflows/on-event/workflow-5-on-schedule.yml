@@ -1,0 +1,29 @@
+name: workflow-5-on-schedule
+on:
+  schedule:
+    - cron: '15 * * * *'
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
+# default 브랜치에 이 파일이 존재해야 동작됨. (schedule 는 브랜치와 무관한 repository event 라서..)
+
+#  ┌───────────── minute (0 - 59)
+#  │ ┌───────────── hour (0 - 23)
+#  │ │ ┌───────────── day of the month (1 - 31)
+#  │ │ │ ┌───────────── month (1 - 12 or JAN-DEC)
+#  │ │ │ │ ┌───────────── day of the week (0 - 6 or SUN-SAT)
+#  │ │ │ │ │
+#  * * * * *
+
+# github action 사용에 높은 부하가 있다면.. schedule 은 실행조차 안될 가능성이 존재하고
+# 정해진 시간에 딱 맞춰 실행되지 않는 경우도 많다.
+# 따라서, 정해진 시간에 딱 맞춰 반드시 실행되어야 한다면.. 다른 방법으로 알아봐야한다.
+
+jobs:
+  my-job-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: my-step-1
+        run: echo hello github action
+      - name: my-step-2
+        run: |
+          echo this is my-step-2
+          echo good
