@@ -1,4 +1,4 @@
-name: workflow-3-on-issues-event
+name: workflow-on-issues-event
 on:
   issues:
     types:

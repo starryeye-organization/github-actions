@@ -1,4 +1,4 @@
-name: workflow-3-on-issue-comment-event
+name: workflow-on-issue-comment-event
 on: issue_comment
 # https://docs.github.com/ko/actions/reference/workflows-and-actions/events-that-trigger-workflows#issue_comment
 # type 이 없는 기본 값으로는 모든 타입(created, edited, deleted)이 활성화 된다. 이 예시에서는 issue 가 생성될때만 실행되도록 함.

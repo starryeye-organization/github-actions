@@ -1,0 +1,39 @@
+name: workflow-on-workflow-dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      my-name: # input 값 1
+        description: 'set name'
+        required: true
+        default: 'github-actions'
+        type: string
+      my-environment: # input 값 2
+        description: 'set env'
+        required: true
+        default: 'stg'
+        type: choice
+        options:
+          - dev
+          - stg
+          - prd
+
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch
+# 수동으로 workflow 를 동작시키고 싶을 때 사용한다.
+# 인풋 값을 넣을 수 있도록 기능을 제공한다.
+#   인풋 값 타입으로는 string, number, boolean, choice 가 존재함
+# 기본적으로 해당 workflow 가 어느 브랜치, 태그 등을 대상으로 실행될 것인지 고를 수 있다.
+
+jobs:
+  my-job-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: my-step-1
+        run: echo hello github action
+      - name: my-step-2
+        run: |
+          echo this is my-step-2
+          echo good
+      - name: my-step-3
+        run: |
+          echo "my-name: ${{ inputs.my-name }}"
+          echo "my-environment: ${{ inputs.my-environment }}"

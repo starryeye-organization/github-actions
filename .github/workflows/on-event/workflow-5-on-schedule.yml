@@ -1,4 +1,4 @@
-name: workflow-5-on-schedule
+name: workflow-on-schedule
 on:
   schedule:
     - cron: '15 * * * *'
