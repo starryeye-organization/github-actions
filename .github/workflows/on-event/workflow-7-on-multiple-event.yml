@@ -1,0 +1,21 @@
+name: workflow-on-multiple-event
+on:
+  push:
+  pull_request:
+    types:
+      - opened
+  workflow_dispatch:
+# 하나의 workflow 를 여러개의 이벤트로 트리거하고 싶을때는..
+# 단순히 여러 개의 이벤트를 나열해주면된다.
+# 이 워크플로우는 push, pull_request, workflow_dispatch 로 트리거 된다.
+
+jobs:
+  my-job-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: my-step-1
+        run: echo hello github action
+      - name: my-step-2
+        run: |
+          echo this is my-step-2
+          echo good
