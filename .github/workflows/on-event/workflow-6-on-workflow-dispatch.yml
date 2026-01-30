@@ -1,4 +1,4 @@
-name: workflow-on-workflow-dispatch
+name: workflow-on-workflow-dispatch-event
 on:
   workflow_dispatch:
     inputs:
