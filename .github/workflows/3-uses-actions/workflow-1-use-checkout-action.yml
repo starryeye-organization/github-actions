@@ -1,0 +1,20 @@
+name: workflow-uses-checkout-action
+on: workflow_dispatch
+
+# github marketplace 의 checkout action 을 이용해본다.
+#     runner VM 안으로 리포지토리 소스를 가져오는 액션이다.
+
+jobs:
+  no-checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: read README.md
+        run: cat README.md # runner 에는 소스코드가 하나도 존재하지 않으므로 README.md 라는 파일이 존재하지 않아서 실패함
+  use-checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: use checkout action
+        uses: actions/checkout@v6 # github marketplace 의 checkout action 을 이용, git repository 를 runner 로 땡겨옴
+      - name: read README.md
+        run: cat README.md # runner 에는 소스코드가 존재하므로 README.md 라는 파일을 읽을 수 있다.
+
