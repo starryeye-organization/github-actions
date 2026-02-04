@@ -1,6 +1,7 @@
 name: workflow-uses-checkout-action
 on: workflow_dispatch
 
+# https://github.com/marketplace/actions/checkout
 # github marketplace 의 checkout action 을 이용해본다.
 #     runner VM 안으로 리포지토리 소스를 가져오는 액션이다.
 
