@@ -1,0 +1,44 @@
+name: workflow-use-branch-filter
+on:
+  push:
+    branches: # 해당 branch filter 는 push 이벤트가 트리거 되면 dev, master 에 한하여 동작한다.
+      - dev
+      - master
+  pull_request:
+    branches: # 해당 branch filter 는 pull_request 이벤트가 트리거 되면 대상 branch 가 dev, master 인 경우에 한하여 동작한다.
+      - dev
+      - master
+  workflow_dispatch:
+
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/workflow-syntax
+#     on.push.branches, on.pull_request.branches 항목 참고
+# branch filter 는 workflow 를 실행할 branch 또는 실행하지 않을 branch 를 지정할 때 사용한다.
+#     특정 branch 에서만 CI/CD 를 실행하고 싶을 때 사용할 수 있다.
+#
+# 위 예시는 아래 상황에서 workflow 가 실행된다.
+#     dev branch 에 push 이벤트 발생
+#     master branch 에 push 이벤트 발생
+#     dev branch 를 대상으로 pull request 이벤트 발생
+#     master branch 를 대상으로 pull request 이벤트 발생
+#
+# push 의 branches 는 push 된 branch 를 기준으로 판단한다.
+# pull_request 의 branches 는 pull request 를 생성한 branch 가 아니라, pull request 가 향하는 대상 branch 를 기준으로 판단한다.
+#
+# branches-ignore 를 사용하면 특정 branch 를 제외할 수 있다.
+#     단, 같은 이벤트에서 branches 와 branches-ignore 를 동시에 사용할 수 없다.
+#
+# context 와 if 를 사용한 조건 처리와의 차이
+#     context + if 는 workflow 가 실행된 이후에 job 또는 step 을 실행할지 결정한다.
+#     branch filter 는 workflow 를 실행할지 말지를 이벤트 트리거 단계에서 먼저 결정한다.
+#
+# workflow_dispatch 는 브랜치 필터를 테스트하기 위해 수동 실행할 수 있도록 추가한 이벤트이다.
+
+jobs:
+  my-job-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: print branch information
+        run: |
+          echo "event_name: ${{ github.event_name }}"
+          echo "ref: ${{ github.ref }}"
+          echo "ref_name: ${{ github.ref_name }}"
