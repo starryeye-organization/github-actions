@@ -1,0 +1,57 @@
+name: workflow-use-cache
+on:
+  push:
+    paths: # 해당 path filter 는 push 이벤트가 트리거 되면 my-app/** 변경에 한하여 동작한다.
+      - 'my-app/**'
+
+# https://docs.github.com/ko/actions/writing-workflows/choosing-what-your-workflow-does/caching-dependencies-to-speed-up-workflows
+# https://github.com/actions/cache
+# cache 는 workflow 실행마다 매번 새로 다운로드하거나 생성하는 파일을 저장해두고, 다음 workflow 실행에서 재사용할 때 사용한다.
+#     dependency 설치 시간, build 시간, 외부 다운로드 시간을 줄이고 싶을 때 사용할 수 있다.
+#
+# GitHub Actions runner 는 workflow 실행마다 새로운 환경에서 시작한다.
+#     따라서 이전 workflow 에서 npm install 로 받은 dependency cache 는 기본적으로 다음 workflow 에 남아있지 않다.
+#     actions/cache 를 사용하면 특정 경로를 key 기준으로 저장해두고 다음 실행에서 복원할 수 있다.
+#
+# cache 를 사용할 때 중요한 값
+#     path: cache 로 저장하고 복원할 파일 또는 디렉터리 경로
+#     key: cache 를 정확히 찾기 위한 고유한 이름
+#     restore-keys: key 가 정확히 일치하지 않을 때 사용할 fallback key prefix
+#
+# 위 예시는 my-app/package-lock.json 이 변경되지 않았다면 기존 npm cache 를 재사용한다.
+#     package-lock.json 이 변경되면 hashFiles 결과가 달라져서 새로운 cache key 가 만들어진다.
+#     즉, dependency 변경 여부에 따라 cache 를 새로 만들지 재사용할지 결정할 수 있다.
+#
+# npm ci 는 package-lock.json 을 기준으로 dependency 를 설치한다.
+#     ~/.npm cache 를 복원하면 npm 이 패키지를 다시 네트워크에서 다운로드하지 않고 cache 를 활용할 수 있다.
+#     node_modules 를 직접 cache 하는 방식보다 npm 의 package cache 를 저장하는 방식이다.
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout the code
+        uses: actions/checkout@v4 # runner VM 안으로 repository 소스코드를 가져온다.
+
+      - name: setup-node
+        uses: actions/setup-node@v3 # runner VM 에 Node.js 실행 환경을 설치한다.
+        with:
+          node-version: 18
+
+      - name: Cache Node.js modules # Node.js dependency 설치에 사용되는 npm cache 를 저장하거나 복원하는 step 이다.
+        uses: actions/cache@v3 # GitHub Actions cache action 을 사용한다.
+        with: # actions/cache 에 전달할 input 값을 정의한다.
+          path: ~/.npm # cache 로 저장하고 복원할 npm package cache 디렉터리 경로이다.
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # runner OS 와 package-lock.json hash 를 조합해서 cache 를 구분하는 고유 key 를 만든다.
+          restore-keys: | # 정확히 일치하는 key 가 없을 때 fallback 으로 사용할 key prefix 목록이다.
+            ${{ runner.os }}-node- # 같은 runner OS 의 Node.js cache 중 가장 가까운 cache 를 복원한다.
+
+      - name: Install dependencies
+        run: |
+          cd my-app
+          npm ci
+
+      - name: npm build
+        run: |
+          cd my-app
+          npm run build
