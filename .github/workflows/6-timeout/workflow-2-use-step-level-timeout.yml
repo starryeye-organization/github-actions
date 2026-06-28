@@ -1,0 +1,40 @@
+name: workflow-use-step-level-timeout
+on: workflow_dispatch
+
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/workflow-syntax
+#     jobs.<job_id>.steps[*].timeout-minutes 항목 참고
+# timeout-minutes 는 workflow 가 너무 오래 실행되지 않도록 제한 시간을 설정할 때 사용한다.
+#     외부 API 응답 지연, 무한 루프, 테스트 hang, 배포 명령 대기 상태 등으로 runner 비용과 시간을 낭비하지 않도록 막을 수 있다.
+#
+# step level timeout
+#     jobs.<job_id>.steps[*].timeout-minutes 위치에 작성한다.
+#     특정 step 하나의 실행 시간을 제한한다.
+#     해당 step 하나만 timeout-minutes 를 넘는지 판단한다.
+#     timeout 이 발생한 step 은 실패하며, 기본적으로 job 도 실패한다.
+#     아래 예시에서는 다음 step 실행 여부를 확인하기 위해 continue-on-error 를 함께 사용했다.
+#
+# timeout-minutes 의 기본값은 360분이다.
+#     값을 직접 지정하면 분 단위 양의 정수로 설정한다.
+#
+# 이 workflow 는 step level timeout 동작을 확인하기 위한 학습용 예제이다.
+#     sleep 90 명령은 90초 동안 대기하므로 timeout-minutes: 1 설정에서 timeout 이 발생한다.
+#     continue-on-error 를 사용했으므로 timeout 이후 다음 step 실행 여부를 확인할 수 있다.
+#     실행하면 의도적으로 실패할 수 있으므로 workflow_dispatch 로 수동 실행한다.
+
+jobs:
+  my-job-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: my-step-1
+        run: echo "step level timeout test start"
+
+      - name: my-step-2
+        timeout-minutes: 1 # step level timeout 이므로 이 step 하나가 1분을 초과하면 실패한다.
+        continue-on-error: true # timeout 이 발생해도 다음 step 이 실행되는지 확인하기 위해 추가한다.
+        run: |
+          echo "long running step start"
+          sleep 90
+          echo "this message will not be printed"
+
+      - name: my-step-3
+        run: echo "continue-on-error 때문에 timeout 이후에도 이 step 은 실행된다."

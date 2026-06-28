@@ -1,0 +1,34 @@
+name: workflow-use-job-level-timeout
+on: workflow_dispatch
+
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/workflow-syntax
+#     jobs.<job_id>.timeout-minutes 항목 참고
+# timeout-minutes 는 workflow 가 너무 오래 실행되지 않도록 제한 시간을 설정할 때 사용한다.
+#     외부 API 응답 지연, 무한 루프, 테스트 hang, 배포 명령 대기 상태 등으로 runner 비용과 시간을 낭비하지 않도록 막을 수 있다.
+#
+# job level timeout
+#     jobs.<job_id>.timeout-minutes 위치에 작성한다.
+#     job 전체 실행 시간을 제한한다.
+#     job 의 모든 step 실행 시간이 timeout-minutes 를 넘으면 job 전체가 취소된다.
+#     job 이 취소되면 아직 실행되지 않은 다음 step 은 실행되지 않는다.
+#
+# timeout-minutes 의 기본값은 360분이다.
+#     값을 직접 지정하면 분 단위 양의 정수로 설정한다.
+#
+# 이 workflow 는 job level timeout 동작을 확인하기 위한 학습용 예제이다.
+#     sleep 90 명령은 90초 동안 대기하므로 timeout-minutes: 1 설정에서 timeout 이 발생한다.
+#     실행하면 의도적으로 취소될 수 있으므로 workflow_dispatch 로 수동 실행한다.
+
+jobs:
+  my-job-1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1 # job level timeout 이므로 이 job 전체가 1분을 초과하면 job 이 취소된다.
+    steps:
+      - name: my-step-1
+        run: |
+          echo "job level timeout test start"
+          sleep 90
+          echo "this message will not be printed"
+
+      - name: my-step-2
+        run: echo "job 이 timeout 으로 취소되면 이 step 은 실행되지 않는다."
