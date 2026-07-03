@@ -1,0 +1,45 @@
+name: workflow-use-artifact
+on: push
+
+# https://docs.github.com/ko/actions/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow
+# https://github.com/actions/upload-artifact
+# https://github.com/actions/download-artifact
+# artifact 는 workflow 실행 중 생성된 파일을 GitHub 에 업로드해서 저장하거나 다른 job 에서 다운로드할 때 사용한다.
+#     빌드 결과물, 테스트 리포트, 로그 파일, 압축 파일 등을 workflow 실행이 끝난 뒤에도 확인하고 싶을 때 사용할 수 있다.
+#
+# GitHub Actions 에서 job 은 기본적으로 서로 다른 runner 환경에서 실행된다.
+#     따라서 upload-artifact job 에서 만든 hello.txt 파일은 download-artifact job 에 자동으로 존재하지 않는다.
+#     job 간에 파일을 공유하려면 upload-artifact 로 업로드하고 download-artifact 로 다시 다운로드해야 한다.
+#
+# artifact 와 cache 의 차이
+#     cache 는 dependency 처럼 다음 workflow 실행에서도 재사용할 데이터를 저장할 때 사용한다.
+#     artifact 는 현재 workflow 실행에서 생성된 결과물을 저장하거나 같은 workflow 의 다른 job 에 전달할 때 사용한다.
+#
+# 생성된 artifact 는 GitHub repository 의 Actions 탭에서 workflow run 상세 화면에 들어가면 확인하고 다운로드할 수 있다.
+#     기본 보관 기간은 repository 설정을 따르며, retention-days input 으로 더 짧게 지정할 수도 있다.
+
+jobs:
+  upload-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: echo
+        run: echo hello-world > hello.txt # runner VM 에 hello.txt 파일을 생성한다.
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v7 # 현재 workflow run 에서 생성된 파일을 artifact 로 업로드한다.
+        with:
+          name: artifact-test # 업로드할 artifact 이름이다. 다운로드할 때 이 이름으로 찾는다.
+          path: ./hello.txt # artifact 로 업로드할 파일 또는 디렉터리 경로이다.
+
+  download-artifact:
+    runs-on: ubuntu-latest
+    needs: [upload-artifact] # upload-artifact job 이 성공한 뒤에 실행되도록 job 실행 순서를 지정한다.
+    steps:
+      - name: download artifact
+        uses: actions/download-artifact@v8 # 같은 workflow run 에 업로드된 artifact 를 다운로드한다.
+        with:
+          name: artifact-test # upload-artifact step 에서 지정한 artifact 이름과 동일해야 한다.
+          path: ./ # artifact 를 다운로드하고 압축 해제할 경로이다.
+
+      - name: check
+        run: cat hello.txt # 다운로드된 artifact 파일 내용을 확인한다.
