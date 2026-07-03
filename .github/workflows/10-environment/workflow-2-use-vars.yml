@@ -1,0 +1,27 @@
+name: workflow-use-vars
+on: push
+
+# https://docs.github.com/ko/actions/learn-github-actions/variables
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/contexts#vars-context
+# vars context 는 GitHub repository, organization, environment level 에 미리 등록해둔 configuration variable 을 참조할 때 사용한다.
+#     workflow 파일 안에서 직접 env 값을 정의하지 않고, GitHub UI 에 저장해둔 값을 여러 workflow 에서 재사용할 수 있다.
+#
+# repository variable 생성 위치
+#     Repository > Settings > Secrets and variables > Actions > Variables > New repository variable
+#     위 화면에서 Name 을 level 로 만들고 Value 를 원하는 값으로 저장하면 아래 workflow 에서 ${{ vars.level }} 로 참조할 수 있다.
+#
+# env 와 vars 의 차이
+#     env 는 workflow 파일 안에서 직접 정의하는 환경변수이다.
+#     vars 는 GitHub repository 설정 화면 등에 미리 저장해둔 configuration variable 이다.
+#     민감하지 않은 설정값은 vars 로 관리하고, 비밀번호나 토큰 같은 민감한 값은 secrets 를 사용해야 한다.
+#
+# vars context 로 값을 참조하는 방법
+#     ${{ vars.level }} 형식으로 configuration variable 값을 가져온다.
+#     설정된 variable 이 없으면 빈 문자열로 평가된다.
+
+jobs:
+  get-var:
+    runs-on: ubuntu-latest
+    steps:
+      - name: get var
+        run: echo "LEVEL ${{ vars.level }}" # repository variable level 값을 vars context 로 참조한다.
