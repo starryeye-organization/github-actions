@@ -26,9 +26,18 @@ on:
 #     package-lock.json 이 변경되면 hashFiles 결과가 달라져서 새로운 cache key 가 만들어진다.
 #     즉, dependency 변경 여부에 따라 cache 를 새로 만들지 재사용할지 결정할 수 있다.
 #
-# npm ci 는 package-lock.json 을 기준으로 dependency 를 설치한다.
-#     ~/.npm cache 를 복원하면 npm 이 패키지를 다시 네트워크에서 다운로드하지 않고 cache 를 활용할 수 있다.
-#     node_modules 를 직접 cache 하는 방식보다 npm 의 package cache 를 저장하는 방식이다.
+# 참고
+# Node.js
+#   JavaScript 코드를 컴퓨터나 서버에서 실행하는 환경
+# npm
+#   Node.js 프로젝트에 필요한 라이브러리와 의존성을 설치·관리하는 도구
+# package-lock.json
+#   프로젝트에 실제로 설치된 npm 패키지 버전을 정확히 고정해서 기록하는 파일
+#
+# runner.os 가 캐시 키로 사용된 이유는..
+#   일부 npm 패키지가 운영체제에 따라 다른 바이너리나 파일을 다운로드하기 때문
+#
+# ~/.npm cache 를 복원하면 npm 이 패키지를 다시 네트워크에서 다운로드하지 않고 cache 를 활용할 수 있다.
 
 jobs:
   test:
@@ -45,7 +54,7 @@ jobs:
       - name: Cache Node.js modules # Node.js dependency 설치에 사용되는 npm cache 를 저장하거나 복원하는 step 이다.
         uses: actions/cache@v3 # GitHub Actions cache action 을 사용한다.
         with: # actions/cache 에 전달할 input 값을 정의한다.
-          path: ~/.npm # cache 로 저장하고 복원할 npm package cache 디렉터리 경로이다.
+          path: ~/.npm # GitHub Actions 캐시에 저장하거나 복원할 실제 디렉터리를 지정한 것. (여기서는 npm이 사용하는 기본 캐시 디렉터리 경로를 지정)
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # runner OS 와 package-lock.json hash 를 조합해서 cache 를 구분하는 고유 key 를 만든다.
           restore-keys: | # 정확히 일치하는 key 가 없을 때 fallback 으로 사용할 key prefix 목록이다.
             ${{ runner.os }}-node- # 같은 runner OS 의 Node.js cache 중 가장 가까운 cache 를 복원한다.
@@ -53,6 +62,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd my-app
+          # package-lock.json 에 기록된 버전 그대로 의존성을 깨끗하게 설치한다.
           npm ci
 
       - name: npm build
