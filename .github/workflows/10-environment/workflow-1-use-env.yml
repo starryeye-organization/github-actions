@@ -1,0 +1,66 @@
+name: workflow-use-env
+on: push
+
+env:
+  level: workflow # workflow level env 이므로 모든 job 에서 기본값으로 사용할 수 있다.
+
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/workflow-syntax
+#     env, jobs.<job_id>.env, jobs.<job_id>.steps[*].env 항목 참고
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/workflow-commands
+#     GITHUB_ENV 항목 참고
+# 여기서 학습하는 environment 는 배포 환경을 의미하는 jobs.<job_id>.environment 가 아니라 환경변수 env 를 의미한다.
+#
+# env 는 workflow, job, step 에서 사용할 환경변수를 정의할 때 사용한다.
+#     workflow level env 는 workflow 전체에서 사용할 수 있다.
+#     job level env 는 해당 job 안에서 workflow level env 를 덮어쓸 수 있다.
+#     step level env 는 해당 step 안에서 job level env 를 덮어쓸 수 있다.
+#
+# 같은 이름의 env 가 여러 level 에 정의되면 더 구체적인 level 의 값이 우선한다.
+#     step level env > job level env > workflow level env 순서로 우선순위가 높다.
+#
+# env 값을 참조하는 방법
+#     ${{ env.level }} 은 GitHub Actions expression 에서 env context 로 값을 참조한다.
+#     $level 은 runner shell 에서 환경변수로 값을 참조한다.
+#
+# GITHUB_ENV
+#     echo "이름=값" >> $GITHUB_ENV 형식으로 작성하면 다음 step 부터 사용할 환경변수를 만들 수 있다.
+#     GITHUB_ENV 로 만든 값은 현재 step 에서는 바로 사용할 수 없고, 이후 step 부터 shell 환경변수로 사용할 수 있다.
+#     따라서 GITHUB_ENV 로 만든 값은 아래 예시처럼 $level 로 확인하는 것이 더 명확하다.
+
+jobs:
+  get-env-1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check workflow level env
+        run: echo "LEVEL ${{ env.level }}" # workflow level env 값인 workflow 가 출력된다.
+
+  get-env-2:
+    runs-on: ubuntu-latest
+    env:
+      level: job # job level env 이므로 이 job 안에서는 workflow level env 를 덮어쓴다.
+    steps:
+      - name: check job level env
+        run: echo "LEVEL ${{ env.level }}" # job level env 값인 job 이 출력된다.
+
+  get-env-3:
+    runs-on: ubuntu-latest
+    env:
+      level: job # job level env 이므로 이 job 의 기본 level 값은 job 이다.
+    steps:
+      - name: check step level env
+        run: echo "LEVEL ${{ env.level }}" # step level env 값인 step 이 출력된다.
+        env:
+          level: step # step level env 이므로 이 step 안에서만 job level env 를 덮어쓴다.
+
+  get-env-4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: create env
+        run: echo "level=github-env" >> $GITHUB_ENV # 다음 step 부터 shell 환경변수 level 값을 github-env 로 설정한다.
+
+      - name: check env
+        run: |
+          echo "LEVEL from shell: $level"
+          echo "LEVEL from env context: ${{ env.level }}"
+          # $level 은 GITHUB_ENV 로 만든 값을 shell 환경변수로 읽으므로 github-env 가 출력된다.
+          # ${{ env.level }} 은 workflow level env context 를 참조하므로 workflow 가 출력된다.
