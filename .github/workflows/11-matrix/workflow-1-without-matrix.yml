@@ -1,0 +1,44 @@
+name: workflow-without-matrix
+on: push
+
+# https://docs.github.com/ko/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations
+# matrix 기능이 없다면 여러 OS, 여러 version 조합을 실행하기 위해 같은 구조의 job 을 반복해서 작성해야 한다.
+#     예를 들어 os 2개(windows-latest, ubuntu-latest)와 version 2개(12, 14)를 조합하면 총 4개의 job 이 필요하다.
+#     조합 수는 os 개수 * version 개수로 늘어나므로, 테스트 대상이 많아질수록 workflow 파일이 길어지고 관리하기 어려워진다.
+#
+# 아래 예시는 matrix 없이 windows-latest/ubuntu-latest 와 version 12/14 조합을 직접 job 으로 나열한 것이다.
+#     각 job 의 runs-on 과 version 출력 값만 다르고 나머지 구조는 모두 중복된다.
+#     이런 중복을 줄이기 위해 strategy.matrix 를 사용할 수 있다.
+
+jobs:
+  windows-version-12:
+    runs-on: windows-latest
+    steps:
+      - name: check os and version
+        run: |
+          echo "os: windows-latest"
+          echo "version: 12"
+
+  windows-version-14:
+    runs-on: windows-latest
+    steps:
+      - name: check os and version
+        run: |
+          echo "os: windows-latest"
+          echo "version: 14"
+
+  ubuntu-version-12:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check os and version
+        run: |
+          echo "os: ubuntu-latest"
+          echo "version: 12"
+
+  ubuntu-version-14:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check os and version
+        run: |
+          echo "os: ubuntu-latest"
+          echo "version: 14"
