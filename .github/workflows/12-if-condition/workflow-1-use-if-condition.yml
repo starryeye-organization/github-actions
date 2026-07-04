@@ -1,0 +1,59 @@
+name: workflow-use-if-condition
+on:
+  push:
+  workflow_dispatch:
+
+# https://docs.github.com/ko/actions/how-tos/write-workflows/choose-when-workflows-run/control-jobs-with-conditions
+#     jobs.<job_id>.if 항목 참고
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/workflow-syntax
+#     jobs.<job_id>.if, jobs.<job_id>.steps[*].if 항목 참고
+# https://docs.github.com/ko/actions/learn-github-actions/expressions
+#     if 조건에서 사용하는 expression 문법 참고
+# if condition 은 workflow 가 시작된 이후에 job 또는 step 을 실행할지 판단하는 조건문이다.
+#     push, workflow_dispatch 처럼 여러 이벤트로 workflow 를 열어둔 뒤, 이벤트 종류나 context 값에 따라 일부 job/step 만 실행할 수 있다.
+#     GitHub Actions 의 if 는 expression 으로 평가되므로 github.event_name == 'push' 처럼 ${{ }} 없이 작성할 수 있다.
+#
+# job level if
+#     jobs.<job_id>.if 위치에 작성한다.
+#     조건이 false 이면 job 전체가 skipped 된다.
+#
+# step level if
+#     jobs.<job_id>.steps[*].if 위치에 작성한다.
+#     조건이 false 이면 해당 step 만 skipped 된다.
+#
+# filter 와 if condition 의 차이
+#     filter(branches, paths, tags)는 on 이벤트 아래에서 workflow 실행 자체를 제한하기 위해 사용한다.
+#         예를 들어 dev branch push 에서만 workflow 를 실행하거나, my-app/** 경로가 바뀐 경우에만 workflow 를 실행할 수 있다.
+#     if condition 은 workflow 가 실행된 이후 job/step 단위로 실행 여부를 나누기 위해 사용한다.
+#         예를 들어 같은 workflow 안에서 push 일 때만 배포 job 을 실행하고, workflow_dispatch 일 때만 점검 step 을 실행할 수 있다.
+#     따라서 불필요한 workflow 실행을 막는 목적이면 filter, 실행된 workflow 내부에서 세부 흐름을 나누는 목적이면 if condition 을 사용한다.
+#
+# 위 예시는 아래 흐름으로 동작한다.
+#     push 이벤트로 실행되면 job1 과 job3 의 PUSH step 이 실행된다.
+#     workflow_dispatch 이벤트로 실행되면 job2 와 job3 의 WORKFLOW_DISPATCH step 이 실행된다.
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' # job level if 이다. push 이벤트로 실행된 workflow 에서만 job1 전체가 실행된다.
+    steps:
+      - name: get event name
+        run: echo "${{ github.event_name }}"
+
+  job2:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'push' # job level if 이다. push 가 아닌 이벤트(workflow_dispatch 등)에서만 job2 전체가 실행된다.
+    steps:
+      - name: get event name
+        run: echo "${{ github.event_name }}"
+
+  job3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: get event name for push
+        if: github.event_name == 'push' # step level if 이다. push 이벤트로 실행된 workflow 에서만 이 step 이 실행된다.
+        run: echo "PUSH"
+
+      - name: get event name for workflow dispatch
+        if: github.event_name != 'push' # step level if 이다. push 가 아닌 이벤트(workflow_dispatch 등)에서만 이 step 이 실행된다.
+        run: echo "WORKFLOW_DISPATCH"
