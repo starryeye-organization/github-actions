@@ -1,0 +1,45 @@
+name: workflow-use-if-always
+on: push
+
+# https://docs.github.com/ko/actions/learn-github-actions/expressions
+#     상태 검사 함수(always, success, failure, cancelled) 항목 참고
+# https://docs.github.com/ko/actions/reference/workflows-and-actions/workflow-syntax
+#     jobs.<job_id>.if, jobs.<job_id>.steps[*].if 항목 참고
+# if condition 에서는 boolean expression 뿐만 아니라 상태 검사 함수도 사용할 수 있다.
+#     상태 검사 함수는 이전 step 또는 이전 job 의 성공/실패/취소 상태를 기준으로 실행 여부를 판단할 때 사용한다.
+#     대표적으로 success(), failure(), cancelled(), always() 가 있다.
+#
+# 기본 동작
+#     step 이나 job 에 if 를 따로 작성하지 않으면 기본적으로 success() 조건이 적용된다.
+#     따라서 앞의 step 이 실패하면 뒤의 step 은 기본적으로 skipped 된다.
+#     needs 로 연결된 앞 job 이 실패하면 뒤 job 도 기본적으로 skipped 된다.
+#
+# always()
+#     always() 는 이전 step 또는 needs 로 연결된 job 의 결과와 관계없이 실행시키고 싶을 때 사용한다.
+#     테스트 실패 후에도 로그 출력, 정리 작업, 알림 전송 같은 후처리를 실행하고 싶을 때 유용하다.
+#     단, always() 로 뒤 step/job 을 실행해도 이미 실패한 step 이 성공으로 바뀌지는 않는다.
+#     아래 예시에서도 job1 의 exit 1 때문에 workflow 결과는 실패로 표시될 수 있다.
+#
+# 위 예시는 아래 흐름으로 동작한다.
+#     job1 의 exit 1 step 이 실패한다.
+#     job1 의 echo step 은 if: always() 덕분에 앞 step 이 실패해도 실행된다.
+#     job2 는 needs: [job1] 로 job1 이후에 실행되지만, if: always() 덕분에 job1 이 실패해도 실행된다.
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: exit 1
+        run: exit 1 # 의도적으로 실패를 발생시킨다. 이 step 때문에 job1 의 최종 결과는 실패가 된다.
+
+      - name: echo
+        if: always() # step level if 이다. 앞 step 이 실패해도 이 step 은 항상 실행된다.
+        run: echo hello
+
+  job2:
+    needs: [job1] # job2 는 job1 이 끝난 뒤 실행된다. 기본적으로 job1 이 실패하면 job2 는 skipped 된다.
+    runs-on: ubuntu-latest
+    if: always() # job level if 이다. needs 로 연결된 job1 이 실패해도 job2 를 실행한다.
+    steps:
+      - name: echo
+        run: echo hello
