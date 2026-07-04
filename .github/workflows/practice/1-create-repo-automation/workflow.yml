@@ -40,8 +40,12 @@ jobs:
 
       - name: slack
         if: always() # 앞 step 의 성공/실패와 관계없이 Slack 알림 step 을 실행한다.
-        uses: slackapi/slack-github-action@v1.24.0 # 외부 action 을 재사용한다.
+        uses: slackapi/slack-github-action@v1.24.0 # Slack Incoming Webhook 으로 메시지를 전송하는 외부 action 을 재사용한다. @v1.24.0 은 사용할 action version 이다.
         with:
+          # payload 는 Slack 으로 보낼 메시지 본문이다.
+          #     title 은 steps.create-repo.outcome 값으로 create-repo step 의 실행 결과(success/failure/skipped 등)를 함께 표시한다.
+          #     value 는 workflow_dispatch 입력값인 prefix/name 을 조합해서 실제 생성하려는 repository 이름을 표시한다.
+          #     payload 내부는 JSON 문자열이므로 각 JSON 라인 뒤에 # 주석을 추가하면 payload 형식이 깨질 수 있다.
           payload: |
             {
               "attachments": [
