@@ -1,0 +1,76 @@
+name: practice-issue-notify
+on:
+  issues: # issue 관련 이벤트가 발생했을 때 workflow 를 실행한다.
+    types: [opened] # issue 가 새로 생성(opened)된 경우에만 workflow 를 실행한다.
+
+# 이 실습 프로젝트는 새 issue 가 생성되면 issue title 에 포함된 키워드를 검사하고,
+# keyword-list.txt 에 정의된 키워드(critical, normal)가 발견되면 해당 값을 level output 으로 만든다.
+# 이후 Slack job 에서 level 값과 같은 GitHub Environment 를 선택하고 Slack 으로 issue 알림을 전송한다.
+#
+# 사전 준비
+#     keyword-list.txt 에 알림 level 로 사용할 키워드를 한 줄씩 작성한다.
+#     Repository > Settings > Environments 에 critical, normal environment 를 미리 생성한다.
+#     각 environment 또는 repository secret 으로 SLACK_WEBHOOK_URL 을 등록한다.
+
+jobs:
+  get-keyword:
+    runs-on: ubuntu-latest # job 이 실행될 runner 환경이다.
+    outputs:
+      level: ${{ steps.get-keyword.outputs.level }} # step output 을 job output 으로 매핑해서 다른 job 에서 사용할 수 있게 한다.
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4 # repository 파일(keyword-list.txt)을 runner 에 내려받기 위해 checkout action 을 사용한다.
+
+      - name: get keyword
+        id: get-keyword # 이후 steps.get-keyword.outputs.level 형식으로 이 step 의 output 을 참조할 수 있다.
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }} # github context 로 issue title 값을 가져와 shell script 에서 사용한다.
+        run: |
+          echo "level=Undefined" >> "$GITHUB_OUTPUT" # 기본 level 값을 Undefined 로 저장한다. 키워드가 없으면 이 값이 유지된다.
+
+          keywords=$(cat .github/workflows/practice/2-issue-notify/keyword-list.txt) # 알림 level 후보 키워드 목록을 파일에서 읽는다.
+          for keyword in $keywords; do
+            if [[ "$ISSUE_TITLE" =~ "$keyword" ]]; then # issue title 에 keyword 가 포함되어 있는지 확인한다.
+              echo "level=$keyword" >> "$GITHUB_OUTPUT" # 매칭된 keyword 를 level step output 으로 저장한다.
+            fi
+          done
+
+      - name: get output
+        run: |
+          echo "${{ steps.get-keyword.outputs.level }}" # 같은 job 안에서 get-keyword step 의 level output 을 확인한다.
+
+  slack:
+    needs: [get-keyword] # get-keyword job 이 끝난 뒤 실행되며, needs context 로 job output 에 접근할 수 있다.
+    if: needs.get-keyword.outputs.level != 'Undefined' # level 이 Undefined 가 아닌 경우, 즉 키워드가 매칭된 경우에만 Slack 알림을 보낸다.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: ["${{ needs.get-keyword.outputs.level }}"] # get-keyword job output 을 matrix 값으로 전달해서 environment 이름으로 사용한다.
+    environment: ${{ matrix.environment }} # matrix.environment 값과 같은 GitHub Environment 를 선택한다. environment secret/approval rule 이 적용된다.
+    steps:
+      - name: slack
+        uses: slackapi/slack-github-action@v1.24.0 # Slack Incoming Webhook 으로 메시지를 전송하는 외부 action 을 재사용한다. @v1.24.0 은 사용할 action version 이다.
+        with:
+          # payload 는 Slack 으로 보낼 메시지 본문이다.
+          #     title 은 needs.get-keyword.outputs.level 값으로 issue title 에서 찾은 알림 level 을 표시한다.
+          #     value 는 github.event.issue.html_url 값으로 새로 생성된 issue URL 을 표시한다.
+          #     payload 내부는 JSON 문자열이므로 각 JSON 라인 뒤에 # 주석을 추가하면 payload 형식이 깨질 수 있다.
+          payload: |
+            {
+              "attachments": [
+                {
+                  "pretext": "issue alert message",
+                  "color": "28a745",
+                  "fields": [
+                    {
+                      "title": "Level : ${{ needs.get-keyword.outputs.level }}",
+                      "short": true,
+                      "value": "issue url : ${{ github.event.issue.html_url }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # 선택된 environment 또는 repository 에 등록된 Slack webhook URL secret 을 참조한다.
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK # slack action 이 Incoming Webhook 방식으로 동작하도록 설정한다.
