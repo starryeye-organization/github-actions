@@ -28,7 +28,7 @@ jobs:
         run: |
           echo "level=Undefined" >> "$GITHUB_OUTPUT" # 기본 level 값을 Undefined 로 저장한다. 키워드가 없으면 이 값이 유지된다.
 
-          keywords=$(cat .github/workflows/practice/2-issue-notify/keyword-list.txt) # 알림 level 후보 키워드 목록을 파일에서 읽는다.
+          keywords=$(cat .github/workflows/workflows-practice/2-issue-notify/keyword-list.txt) # 알림 level 후보 키워드 목록을 파일에서 읽는다.
           for keyword in $keywords; do
             if [[ "$ISSUE_TITLE" =~ "$keyword" ]]; then # issue title 에 keyword 가 포함되어 있는지 확인한다.
               echo "level=$keyword" >> "$GITHUB_OUTPUT" # 매칭된 keyword 를 level step output 으로 저장한다.
